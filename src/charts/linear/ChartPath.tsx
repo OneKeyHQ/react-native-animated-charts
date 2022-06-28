@@ -5,7 +5,8 @@ import {
   LongPressGestureHandlerGestureEvent,
   LongPressGestureHandlerProperties,
 } from 'react-native-gesture-handler';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import * as Haptics from 'expo-haptics';
+
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -64,8 +65,8 @@ function least(length: number, compare: (value: number) => number) {
 function impactHeavy() {
   'worklet';
   (runOnJS
-    ? runOnJS(ReactNativeHapticFeedback.trigger)
-    : ReactNativeHapticFeedback.trigger)('impactHeavy');
+    ? runOnJS(Haptics.impactAsync)
+    : Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy);
 }
 
 const timingFeedbackDefaultConfig = {
