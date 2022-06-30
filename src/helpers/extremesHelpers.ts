@@ -1,3 +1,4 @@
+// @ts-nocheck
 export function findYExtremes(data) {
   let smallestY = null;
   let greatestY = null;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const controlPoint = (current, previous, next, reverse, smoothing) => {
   'worklet';
   const p = previous || current;

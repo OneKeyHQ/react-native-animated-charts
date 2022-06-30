@@ -1,5 +1,5 @@
 export default function simplifyData(
-  data,
+  data: any[],
   pickRange = 10,
   includeExtremes = true
 ) {

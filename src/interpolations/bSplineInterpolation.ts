@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { addExtremesIfNeeded } from '../helpers/extremesHelpers';
 
 class BSpline {
