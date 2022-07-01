@@ -61,6 +61,11 @@ export interface ChartData {
   positionY: Animated.SharedValue<number>;
   previousPath: PathData | null;
   currentPath: PathData | null;
+
+  smallestX?: Point;
+  smallestY?: Point;
+  greatestX?: Point;
+  greatestY?: Point;
 }
 
 export const ChartContext = React.createContext<ChartData | null>(null);
