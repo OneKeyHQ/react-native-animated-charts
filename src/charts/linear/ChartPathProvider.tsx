@@ -18,7 +18,7 @@ import { findYExtremes } from '../../helpers/extremesHelpers';
 export const { width: WIDTH } = Dimensions.get('window');
 const HEIGHT = 146.5;
 
-interface ChartPathProviderProps PropsWithChildren<{
+type ChartPathProviderProps = PropsWithChildren<{
   data: DataType;
   width?: number;
   height?: number;
