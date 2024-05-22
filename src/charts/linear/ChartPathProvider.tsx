@@ -1,6 +1,6 @@
 import { scaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { parse as parseSvg } from 'react-native-redash';
@@ -18,12 +18,12 @@ import { findYExtremes } from '../../helpers/extremesHelpers';
 export const { width: WIDTH } = Dimensions.get('window');
 const HEIGHT = 146.5;
 
-interface ChartPathProviderProps {
+interface ChartPathProviderProps PropsWithChildren<{
   data: DataType;
   width?: number;
   height?: number;
   yRange?: [number, number];
-}
+}>
 
 function getCurveType(curveType: keyof typeof CurveType) {
   switch (curveType) {
