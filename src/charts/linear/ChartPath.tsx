@@ -77,7 +77,7 @@ const timingAnimationDefaultConfig = {
   duration: 300,
 };
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedPath: any = Animated.createAnimatedComponent(Path);
 
 interface ChartPathProps extends PathProps {
   hapticsEnabled?: boolean;
@@ -385,7 +385,6 @@ const ChartPathInner = React.memo(
             viewBox={`0 0 ${width} ${height}`}
           >
             <AnimatedPath
-              // @ts-expect-error
               animatedProps={animatedProps}
               stroke={stroke}
               strokeWidth={strokeWidth}
