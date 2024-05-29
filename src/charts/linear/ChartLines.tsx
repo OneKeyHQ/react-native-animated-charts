@@ -27,7 +27,7 @@ function ChartLineFactory(orientation: 'horizontal' | 'vertical') {
       const currentPositionVerticalLineStyle = useAnimatedStyle(
         () => ({
           opacity: dotScale.value,
-          transform: [{ translateX: positionX.value }],
+          transform: [{ translateX: positionX.value }] as any,
         }),
         []
       );
@@ -42,7 +42,7 @@ function ChartLineFactory(orientation: 'horizontal' | 'vertical') {
                 firstPoint ? firstPoint?.y * height + 10 : 0
               ),
             },
-          ],
+          ] as any,
         };
       }, [currentPath]);
       return (

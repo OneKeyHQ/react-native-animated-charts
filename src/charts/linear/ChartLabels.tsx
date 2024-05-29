@@ -5,7 +5,7 @@ import { useChartData } from '../../helpers/useChartData';
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-interface ChartLabelProps extends TextInputProps {
+interface ChartLabelProps extends Omit<TextInputProps, 'style'> {
   format: (value: string) => string;
 }
 

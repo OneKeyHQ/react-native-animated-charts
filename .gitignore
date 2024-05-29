@@ -53,3 +53,4 @@ jsconfig.json
 .project
 .settings/
 .vscode
+.history

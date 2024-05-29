@@ -14,11 +14,7 @@
   "dependencies": {
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.0.1",
-    "expo-haptics": "^11.2.0",
-    "react-native-gesture-handler": "^2.5.0",
-    "react-native-reanimated": "^2.4.1",
-    "react-native-redash": "^16.2.2",
-    "react-native-svg": "^12.1.0"
+    "react-native-redash": "^16.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.11.4",
@@ -28,6 +24,10 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-reanimated": ">=2.0.0",
+    "react-native-gesture-handler": "*",
+    "react-native-svg": "*",
+    "expo-haptics": "*"
   }
 }
