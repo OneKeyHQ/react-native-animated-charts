@@ -1,14 +1,18 @@
 {
   "name": "@onekeyfe/react-native-animated-charts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The library provides a set of components and helpers for building complex and beautiful animated linear (only - for now) charts. It's a part of the [Rainbow.me project](https://rainbow.me/).",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "author": "Michał Osadnik, @onekeyfe",
   "files": [
-    "src/"
+    "dist/"
   ],
   "license": "MIT",
   "dependencies": {
@@ -20,7 +24,15 @@
     "@babel/core": "^7.11.4",
     "@babel/runtime": "^7.11.2",
     "@types/d3-scale": "^4.0.2",
-    "@types/d3-shape": "^3.0.2"
+    "@types/d3-shape": "^3.0.2",
+    "typescript": "^5.0.0",
+    "@types/react": "19.0.0",
+    "react": "19.0.0",
+    "react-native": "0.81.0",
+    "react-native-reanimated": "3.19.4",
+    "react-native-gesture-handler": "2.24.0",
+    "react-native-svg": "15.11.1",
+    "expo-haptics": "12.0.0"
   },
   "peerDependencies": {
     "react": "*",
