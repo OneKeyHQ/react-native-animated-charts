@@ -1,27 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Platform, View, ViewProps } from 'react-native';
 import {
-  LongPressGestureHandler,
-  LongPressGestureHandlerGestureEvent,
-  LongPressGestureHandlerProperties,
+  Gesture,
+  GestureDetector,
+  GestureStateChangeEvent,
+  GestureUpdateEvent,
+  LongPressGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 
 import Animated, {
   cancelAnimation,
-  runOnJS,
-  runOnUI,
-  useAnimatedGestureHandler,
   useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  useWorkletCallback,
   withDelay,
   WithSpringConfig,
   withTiming,
   WithTimingConfig,
 } from 'react-native-reanimated';
+import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import { getYForX } from 'react-native-redash';
 import Svg, { Path, PathProps } from 'react-native-svg';
 import { ChartData, PathData } from '../../helpers/ChartContext';
@@ -64,9 +63,7 @@ function least(length: number, compare: (value: number) => number) {
 
 function impactHeavy() {
   'worklet';
-  (runOnJS
-    ? runOnJS(Haptics.impactAsync)
-    : Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy);
+  scheduleOnRN(Haptics.impactAsync, Haptics.ImpactFeedbackStyle.Heavy);
 }
 
 const timingFeedbackDefaultConfig = {
@@ -91,7 +88,11 @@ interface ChartPathProps extends PathProps {
   stroke?: string;
   gestureEnabled?: boolean;
   springConfig?: WithSpringConfig;
-  longPressGestureHandlerProps?: LongPressGestureHandlerProperties;
+  longPressGestureHandlerProps?: {
+    minDurationMs?: number;
+    maxDist?: number;
+    shouldCancelWhenOutside?: boolean;
+  };
   timingFeedbackConfig?: WithTimingConfig;
   timingAnimationConfig?: WithTimingConfig;
 }
@@ -138,8 +139,9 @@ const ChartPathInner = React.memo(
     const translationX = useSharedValue<number | null>(null);
     const translationY = useSharedValue<number | null>(null);
 
-    const setOriginData = useWorkletCallback(
+    const setOriginData = useCallback(
       (path: PathData, index?: number) => {
+        'worklet';
         if (!path.data.length) {
           return;
         }
@@ -153,10 +155,11 @@ const ChartPathInner = React.memo(
         originalX.value = path.data[index].x.toString();
         originalY.value = path.data[index].y.toString();
       },
-      []
+      [originalX, originalY]
     );
 
-    const resetGestureState = useWorkletCallback(() => {
+    const resetGestureState = useCallback(() => {
+      'worklet';
       originalX.value = '';
       originalY.value = '';
       positionY.value = -1;
@@ -167,10 +170,10 @@ const ChartPathInner = React.memo(
       );
       translationX.value = null;
       translationY.value = null;
-    }, []);
+    }, [originalX, originalY, positionY, isActive, pathOpacity, translationX, translationY, timingFeedbackConfig]);
 
     useEffect(() => {
-      runOnUI(() => {
+      scheduleOnUI(() => {
         'worklet';
         if (currentPath) {
           setOriginData(currentPath);
@@ -205,7 +208,7 @@ const ChartPathInner = React.memo(
           interpolatorWorklet().value = undefined;
           progress.value = 1;
         }
-      })();
+      });
       // you don't need to change timingAnimationConfig that often
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPath?.path, previousPath?.path]);
@@ -304,9 +307,50 @@ const ChartPathInner = React.memo(
       return props;
     }, [currentPath]);
 
-    const onGestureEvent = useAnimatedGestureHandler<LongPressGestureHandlerGestureEvent>(
-      {
-        onActive: event => {
+    const longPressGesture = Gesture.LongPress()
+      .minDuration(longPressGestureHandlerProps?.minDurationMs ?? 0)
+      .maxDistance(longPressGestureHandlerProps?.maxDist ?? 100000)
+      .shouldCancelWhenOutside(longPressGestureHandlerProps?.shouldCancelWhenOutside ?? false)
+      .enabled(gestureEnabled)
+      .onStart((event: GestureStateChangeEvent<LongPressGestureHandlerEventPayload>) => {
+        'worklet';
+        // WARNING: the following code does not run on using iOS, but it does on Android.
+        // I use the same code from onTouchesMove
+        // platform is for safety
+        if (Platform.OS === 'android') {
+          state.value = event.state;
+          isActive.value = true;
+          pathOpacity.value = withTiming(
+            0,
+            timingFeedbackConfig || timingFeedbackDefaultConfig
+          );
+
+          if (hapticsEnabled) {
+            impactHeavy();
+          }
+        }
+      })
+      .onEnd((event: GestureStateChangeEvent<LongPressGestureHandlerEventPayload>) => {
+        'worklet';
+        state.value = event.state;
+        resetGestureState();
+
+        if (hapticsEnabled) {
+          impactHeavy();
+        }
+      })
+      .onFinalize(() => {
+        'worklet';
+        resetGestureState();
+      });
+
+    const panGesture = Gesture.Pan()
+      .minDistance(0)
+      .enabled(gestureEnabled)
+      .onTouchesMove((event) => {
+        'worklet';
+        if (event.allTouches.length > 0) {
+          const touch = event.allTouches[0];
           if (!isActive.value) {
             isActive.value = true;
 
@@ -320,46 +364,12 @@ const ChartPathInner = React.memo(
             }
           }
 
-          state.value = event.state;
-          translationX.value = positionXWithMargin(event.x, hitSlop, width);
-          translationY.value = event.y;
-        },
-        onCancel: event => {
-          state.value = event.state;
-          resetGestureState();
-        },
-        onEnd: event => {
-          state.value = event.state;
-          resetGestureState();
+          translationX.value = positionXWithMargin(touch.x, hitSlop, width);
+          translationY.value = touch.y;
+        }
+      });
 
-          if (hapticsEnabled) {
-            impactHeavy();
-          }
-        },
-        onFail: event => {
-          state.value = event.state;
-          resetGestureState();
-        },
-        onStart: event => {
-          // WARNING: the following code does not run on using iOS, but it does on Android.
-          // I use the same code from onActive
-          // platform is for safety
-          if (Platform.OS === 'android') {
-            state.value = event.state;
-            isActive.value = true;
-            pathOpacity.value = withTiming(
-              0,
-              timingFeedbackConfig || timingFeedbackDefaultConfig
-            );
-
-            if (hapticsEnabled) {
-              impactHeavy();
-            }
-          }
-        },
-      },
-      [width, height, hapticsEnabled, hitSlop, timingFeedbackConfig]
-    );
+    const composedGesture = Gesture.Simultaneous(longPressGesture, panGesture);
 
     const pathAnimatedStyles = useAnimatedStyle(() => {
       return {
@@ -368,14 +378,7 @@ const ChartPathInner = React.memo(
     });
 
     return (
-      <LongPressGestureHandler
-        enabled={gestureEnabled}
-        maxDist={100000}
-        minDurationMs={0}
-        onGestureEvent={onGestureEvent}
-        shouldCancelWhenOutside={false}
-        {...longPressGestureHandlerProps}
-      >
+      <GestureDetector gesture={composedGesture}>
         <Animated.View>
           <Svg
             style={{
@@ -393,7 +396,7 @@ const ChartPathInner = React.memo(
             />
           </Svg>
         </Animated.View>
-      </LongPressGestureHandler>
+      </GestureDetector>
     );
   }
 );
