@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewProps } from 'react-native';
+import { ViewProps, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -40,7 +40,7 @@ const ChartDot = React.memo(
             scale: animation,
           },
         ],
-      };
+      } as ViewStyle;
     }, [size]);
 
     return (
