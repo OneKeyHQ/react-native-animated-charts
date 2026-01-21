@@ -17,27 +17,41 @@ It's a part of the [Rainbow.me project](https://rainbow.me/).
 
 ## Installation
 
-1. Install [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/next/fundamentals/installation) in the newest version. 
-2. 
+1. Install [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) v4.x or later.
+2. Install [react-native-worklets](https://github.com/software-mansion/react-native-worklets) (required by reanimated v4).
+3. Install [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation) v2.x or later.
+4.
 ```bash
-yarn add @rainbow-me/animated-charts
+yarn add @onekeyfe/react-native-animated-charts
 ```
 
-The library has been verified with `2.0.0-alpha.6` version of reanimated.
+### Requirements
 
-### Reanimated
-Using TurboModules might have an impact on your current development flow and most likely
-you don't want to decrease your DX. Since we're not using reanimated in other places in the app, we
-made some tweaks to disable charts in development mode with compilation macros on iOS. 
-You can find it [here](https://github.com/rainbow-me/rainbow/blob/develop/ios/Rainbow/AppDelegate.mm)
+- **React Native New Architecture**: Reanimated 4.x only supports the New Architecture (Fabric). Make sure your app is running on the New Architecture.
+- **Babel Configuration**: Update your `babel.config.js` to use the worklets plugin:
 
-Also, because we're using libraries which currently do not support reanimated 2,
-we [patched exports in reanimated](https://github.com/rainbow-me/rainbow/tree/develop/patches)
+```js
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  plugins: ['react-native-worklets/plugin'],
+};
+```
 
-Furthermore, we found few differences in how the `Animated` module works with and without TurboModules support, so 
-we [made a trick](https://github.com/rainbow-me/rainbow/tree/develop/patches) to fallback to the not-TM version of Animated. 
+### Gesture Handler Setup
 
-Most likely, you don't need any of those patches.
+Make sure to wrap your app with `GestureHandlerRootView`:
+
+```jsx
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+export default function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Your app content */}
+    </GestureHandlerRootView>
+  );
+}
+```
 
 ## Example app
 We made a generic example to show briefly what's possible to achieve with this library.
@@ -225,12 +239,6 @@ Y:0          1          7          2         -3          0          1          2
 It's a bit advanced hook and contains information about current position of dot and corresponding values. Content of the result is changing often, so it's not worth deep documentation now.
 
 ## TODO
-The library has been released in a production-ready version. 
-We use it inside the [Rainbow.me project](https://rainbow.me/) so it's verified for use in production. 
-However, it relies on [React Native Reanimated 2.0](https://docs.swmansion.com/react-native-reanimated/) in the alpha version thus it might not work perfectly. 
-Test it deeply before using it. Until the stable release of Reanimated 2, I think it's worth not marking this library as stable.
-Although the library works with Reanimated without any changes, we faced a few issues related to our (quite advanced) usage of the library.
-Thus we made some hacks we're not very proud of and it's for 99% something you should not do. However, if you see some crashes, you may try one of our hacks. 
 
 There're a few things left to make it polished regarding linear charts:
 - [ ] Support for gestures - pinching, swiping, etc.
